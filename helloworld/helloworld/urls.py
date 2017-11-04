@@ -17,6 +17,7 @@ from django.conf.urls import url
 from django.contrib import admin
 
 from . import views
+from . import views2
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -26,4 +27,5 @@ urlpatterns = [
     url(r'^getTimestamp/', views.getTimestamp, name='getTimestamp'),
     url(r'^gitClone/', views.gitClone, name='gitClone'),
     url(r'^git/hooks', views.hooks, name='hooks'),
+    url(r'^duck/record-event', views2.recodEvent, name='recodEvent')
 ]
