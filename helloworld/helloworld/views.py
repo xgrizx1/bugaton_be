@@ -11,7 +11,8 @@ def index(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def hooks(request):
-    json_data = json.loads(request.body)
+    
+    json_data = json.loads(request.POST["payload"])
     my_firebase = firebase.FirebaseApplication('https://test-cdf02.firebaseio.com', None)
     result = my_firebase.patch('https://test-cdf02.firebaseio.com/test_push2', json_data)
     
