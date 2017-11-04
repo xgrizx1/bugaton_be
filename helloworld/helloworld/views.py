@@ -38,6 +38,8 @@ def hooks(request):
     
     json_data = json.loads(request.POST["payload"])
     result = my_firebase.patch('https://test-cdf02.firebaseio.com/test_push2', json_data)
+
+    
     
     return HttpResponse(result)
 
@@ -54,8 +56,8 @@ def createModelData():
     users = my_firebase.get("/users", None)
     print(users)
     print("*************")
-    mood_events = my_firebase.get("/mood_events", None)
-    duck_events = my_firebase.get("/duck_events", None)
+    mood_events = my_firebase.get("/mood_events_mock", None)
+    duck_events = my_firebase.get("/duck_events_mock", None)
 
     model={}
     for user_id in users:
@@ -94,6 +96,7 @@ def createModelData():
                             type_event_day = int(type_event_timestamp) / (1000 * 60 * 24)
                             print('type_day', type_event_day)
                             if (day == type_event_day):
+                                print("isti:::::::::::::::::::::::")
                                 suma += int(type_events[type_event_timestamp])
                                 cnt += 1
                     except:
@@ -152,6 +155,8 @@ def createModelData():
             pass
         #print(user_id)
         #print(user_mood_events)
+    print()
+    print()
     print(model)
 
 
