@@ -56,34 +56,103 @@ def createModelData():
     print("*************")
     mood_events = my_firebase.get("/mood_events", None)
     duck_events = my_firebase.get("/duck_events", None)
+
+    model={}
     for user_id in users:
+        model[user_id] = {}
+        print("--------")
+        print(user_id)
         duck_id = users[user_id]['duck_id']
+        print("duck_id: ", duck_id)
         user_mood_events = None
+
+        sume = []
+        cnts = []
+        avgs = []
+
         try:
             #all user mood events
             user_mood_events = mood_events[user_id]
+            print(user_mood_events)
             #all days
             for timestamp in user_mood_events:
-                day = timestamp / (1000 * 60 * 24)
-                suma[day] = 0
-                cnt[day] = 0
-                #noise events for 
+                day = int(timestamp) / (1000 * 60 * 24)
+                model[user_id][day] = {}
+                print("day ", day)
+
+
+                event_types = ["noise_events", "temperature_events"]
+
+                for event_type in event_types:  
+                    suma = 0
+                    cnt = 0
+                    try:
+                        type_events = duck_events[event_type][duck_id]
+                        print("type_events")
+                        print(type_events)
+                        for type_event_timestamp in type_events:
+                            type_event_day = int(type_event_timestamp) / (1000 * 60 * 24)
+                            print('type_day', type_event_day)
+                            if (day == type_event_day):
+                                suma += int(type_events[type_event_timestamp])
+                                cnt += 1
+                    except:
+                        pass
+                    print("**1")
+                    if (cnt > 1):
+                        user_type_avg = float(suma)/cnt
+                        model[user_id][day][event_type] = user_type_avg
+                    print("**2")
+
+
+
+                """
+                suma = 0
+                cnt = 0
+
+                #noise events avg for user
                 try:
                     noise_events = duck_events["noise_events"][duck_id]
+                    print("noise_events")
+                    print(noise_events)
                     for noise_event_timestamp in noise_events:
-                        noise_event_day = noise_event_timestamp / (1000 * 60 * 24)
+                        noise_event_day = int(noise_event_timestamp) / (1000 * 60 * 24)
+                        print('noise_day', noise_event_day)
                         if (day == noise_event_day):
-                            suma[day] += noise_events[noise_event_timestamp]
-                            cnt[day] += 1
-
+                            suma += int(noise_events[noise_event_timestamp])
+                            cnt += 1
                 except:
                     pass
-                print(timestamp)
+                print("**1")
+                user_noise_avg = float(suma)/cnt
+                model[user_id][day]["noise"] = user_noise_avg
+                print("**2")
+
+                suma = 0
+                cnt = 0
+                #temperature events avg for user
+                try:
+                    temperature_events = duck_events["temperature_events"][duck_id]
+                    print("noise_events")
+                    print(temperature_events)
+                    for temperature_event_timestamp in temperature_events:
+                        temperature_event_day = int(temperature_event_timestamp) / (1000 * 60 * 24)
+                        print('temperature_event_day', temperature_event_day)
+                        if (day == temperature_event_day):
+                            suma += int(temperature_events[temperature_event_timestamp])
+                            cnt += 1
+                except:
+                    pass
+                print("**1")
+                user_noise_avg = float(suma)/cnt
+                model[user_id][day]["noise"] = user_noise_avg
+                print("**2")
+                """
         except:
             pass
-        print(user_id)
-        print(user_mood_events)
-        #print duck_id
+        #print(user_id)
+        #print(user_mood_events)
+    print(model)
 
 
 if __name__ == "__main__":	
