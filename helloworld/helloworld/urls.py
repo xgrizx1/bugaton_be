@@ -21,5 +21,9 @@ from . import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^index/', views.index, name='index'),
+    url(r'^ls/', views.ls, name='ls'),
+    url(r'^getLists/', views.getLists, name='getLists'),
+    url(r'^getTimestamp/', views.getTimestamp, name='getTimestamp'),
+    url(r'^gitClone/', views.gitClone, name='gitClone'),
     url(r'^git/hooks', views.hooks, name='hooks'),
 ]
