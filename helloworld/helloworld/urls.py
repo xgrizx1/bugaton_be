@@ -27,5 +27,7 @@ urlpatterns = [
     url(r'^getTimestamp/', views.getTimestamp, name='getTimestamp'),
     url(r'^gitClone/', views.gitClone, name='gitClone'),
     url(r'^git/hooks', views.hooks, name='hooks'),
-    url(r'^duck/record-event', views2.recodEvent, name='recodEvent')
+    url(r'^getAverageMoodsWeekly', views.getAverageMoodsWeekly, name='getAverageMoodsWeekly'),
+    url(r'^duck/record-event', views2.recodEvent, name='recodEvent'),
+    url(r'^post1/', views.post1, name='post1'),
 ]

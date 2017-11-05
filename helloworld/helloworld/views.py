@@ -3,11 +3,17 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from firebase import firebase
 from time import time
+from datetime import datetime, timedelta
 
 import json
 import subprocess
 
 my_firebase = firebase.FirebaseApplication('https://test-cdf02.firebaseio.com', None)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def post1(requst):
+    return HttpResponse("ok")
 
 def index(request):
     #f = open("test2.txt","w")
@@ -38,8 +44,81 @@ def hooks(request):
     
     json_data = json.loads(request.POST["payload"])
     result = my_firebase.patch('https://test-cdf02.firebaseio.com/test_push2', json_data)
-    
+    commits = json_data["commits"]
+  
+    for commit in commits:
+        added = 0
+        modified = 0
+        removed = 0
+        try:
+            added += len(commit["added"])
+        except:
+            pass
+        try:
+            modified += len(commit["modified"])
+        except:
+            pass
+        try:
+            removed += len(commit["removed"])
+        except:
+            pass
+        github_username = commit["committer"]["username"]
+
+        utc_time = datetime.strptime("2017-09-15T17:13:29.380Z", "%Y-%m-%dT%H:%M:%S.%fZ")
+        #milliseconds = (utc_time - datetime(1970, 1, 1)) // timedelta(milliseconds=1)
+        milliseconds = int((utc_time - datetime.utcfromtimestamp(0)).total_seconds() * 1000.0)
+        # print(milliseconds)
+
+        # year = commit["timestamp"][0:4]
+        # month = commit["timestamp"][5:7]
+        # day = commit["timestamp"][8:10]
+        # hour = commit["timestamp"][11:13]
+        # minute = commit["timestamp"][14:16]
+        # second = commit["timestamp"][17:19]
+        # print(added,modified,removed)
+        # print(year, month, day)
+        # print(hour, minute, second)
+        obj = {github_username: {
+            milliseconds: {
+                "code_quality": "0.777",
+                "files_added": added,
+                "files_changed": modified,
+                "files_removed": removed
+            }
+        }}
+
+        result = my_firebase.patch('https://test-cdf02.firebaseio.com/git_events', obj)
+
     return HttpResponse(result)
+
+def getAverageMoodsWeekly(request):
+    today = int(time() * 1000) / (1000 * 60 * 24)
+    averageMoods = [None, None, None, None, None, None, None]
+    sumMoods = [0, 0, 0, 0, 0, 0, 0]
+    cntMoods = [0, 0, 0, 0, 0, 0, 0]
+    mood_events = my_firebase.get("/mood_events_mock", None)
+    for user_id in mood_events:
+        print(user_id)
+        for timestamp in mood_events[user_id]:
+            value = int(mood_events[user_id][timestamp])
+            print(value)
+            day = int(timestamp) / (1000 * 60 * 24)
+            daysAgo = today - day
+            print("d",daysAgo)
+            if (daysAgo < 7):
+                sumMoods[daysAgo] += value
+                cntMoods[daysAgo] += 1
+
+    for i in range(7):
+        if cntMoods[i] > 0:
+            averageMoods[i] = sumMoods[i] / cntMoods
+        else:
+            averageMoods[i] = None
+
+    print(averageMoods)
+    print(averageMoods.reverse())
+    return HttpResponse(averageMoods.reverse())
+
 
 def getLists(request):
     ducks = my_firebase.get("/ducks", None)
@@ -54,36 +133,108 @@ def createModelData():
     users = my_firebase.get("/users", None)
     print(users)
     print("*************")
-    mood_events = my_firebase.get("/mood_events", None)
-    duck_events = my_firebase.get("/duck_events", None)
+    mood_events = my_firebase.get("/mood_events_mock", None)
+    duck_events = my_firebase.get("/duck_events_mock", None)
+
+    model={}
     for user_id in users:
+        model[user_id] = {}
+        print("--------")
+        print(user_id)
         duck_id = users[user_id]['duck_id']
+        print("duck_id: ", duck_id)
         user_mood_events = None
+
+        sume = []
+        cnts = []
+        avgs = []
+
         try:
             #all user mood events
             user_mood_events = mood_events[user_id]
+            print(user_mood_events)
             #all days
             for timestamp in user_mood_events:
-                day = timestamp / (1000 * 60 * 24)
-                suma[day] = 0
-                cnt[day] = 0
-                #noise events for 
+                day = int(timestamp) / (1000 * 60 * 24)
+                model[user_id][day] = {}
+                print("day ", day)
+
+
+                event_types = ["noise_events", "temperature_events"]
+
+                for event_type in event_types:  
+                    suma = 0
+                    cnt = 0
+                    try:
+                        type_events = duck_events[event_type][duck_id]
+                        print("type_events")
+                        print(type_events)
+                        for type_event_timestamp in type_events:
+                            type_event_day = int(type_event_timestamp) / (1000 * 60 * 24)
+                            print('type_day', type_event_day)
+                            if (day == type_event_day):
+                                print("isti:::::::::::::::::::::::")
+                                suma += int(type_events[type_event_timestamp])
+                                cnt += 1
+                    except:
+                        pass
+                    print("**1")
+                    if (cnt > 1):
+                        user_type_avg = float(suma)/cnt
+                        model[user_id][day][event_type] = user_type_avg
+                    print("**2")
+
+
+
+                """
+                suma = 0
+                cnt = 0
+
+                #noise events avg for user
                 try:
                     noise_events = duck_events["noise_events"][duck_id]
+                    print("noise_events")
+                    print(noise_events)
                     for noise_event_timestamp in noise_events:
-                        noise_event_day = noise_event_timestamp / (1000 * 60 * 24)
+                        noise_event_day = int(noise_event_timestamp) / (1000 * 60 * 24)
+                        print('noise_day', noise_event_day)
                         if (day == noise_event_day):
-                            suma[day] += noise_events[noise_event_timestamp]
-                            cnt[day] += 1
-
+                            suma += int(noise_events[noise_event_timestamp])
+                            cnt += 1
                 except:
                     pass
-                print(timestamp)
+                print("**1")
+                user_noise_avg = float(suma)/cnt
+                model[user_id][day]["noise"] = user_noise_avg
+                print("**2")
+
+                suma = 0
+                cnt = 0
+                #temperature events avg for user
+                try:
+                    temperature_events = duck_events["temperature_events"][duck_id]
+                    print("noise_events")
+                    print(temperature_events)
+                    for temperature_event_timestamp in temperature_events:
+                        temperature_event_day = int(temperature_event_timestamp) / (1000 * 60 * 24)
+                        print('temperature_event_day', temperature_event_day)
+                        if (day == temperature_event_day):
+                            suma += int(temperature_events[temperature_event_timestamp])
+                            cnt += 1
+                except:
+                    pass
+                print("**1")
+                user_noise_avg = float(suma)/cnt
+                model[user_id][day]["noise"] = user_noise_avg
+                print("**2")
+                """
         except:
             pass
-        print(user_id)
-        print(user_mood_events)
-        #print duck_id
+        #print(user_id)
+        #print(user_mood_events)
+    print()
+    print()
+    print(model)
 
 
 if __name__ == "__main__":	
