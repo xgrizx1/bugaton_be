@@ -32,4 +32,6 @@ urlpatterns = [
     url(r'^post1/', views.post1, name='post1'),
     url(r'^rateDay/', views.rateDay, name='rateDay'),
     url(r'^getAverageEventsWeekly/', views.getAverageEventsWeekly, name='getAverageEventsWeekly'),
+    url(r'^getUsers/', views.getUsers, name='getUsers'),
+    url(r'^getProjects/', views.getProjects, name='getProjects'),
 ]

@@ -26,6 +26,15 @@ def rateDay(request):
     print(result)
     return HttpResponse("ok")
 
+def getUsers(request):
+    users = my_firebase.get("/users", None)
+    return HttpResponse(str(users))
+
+def getProjects(request):
+    projects = my_firebase.get("/projects", None)
+    return HttpResponse(str(projects))
+
+
 def index(request):
     #f = open("test2.txt","w")
     output = subprocess.check_output("echo 1+2", shell=True)
@@ -140,7 +149,7 @@ def getAverageEventsWeekly(request):
             else:
                 out[duck_event_type][i] = -1
         out[duck_event_type].reverse()
-    return HttpResponse(str(out))
+    return HttpResponse(json.dumps(out))
 
 def getAverageMoodsWeekly(request):
     today = int(time() * 1000) // (1000 * 60 * 60 * 24)
@@ -169,7 +178,7 @@ def getAverageMoodsWeekly(request):
     print(averageMoods)
     averageMoods.reverse()
     print(averageMoods)
-    return HttpResponse(str(averageMoods))
+    return HttpResponse(json.dumps(averageMoods))
 
 
 def getLists(request):
