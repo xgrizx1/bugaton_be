@@ -115,7 +115,8 @@ def getAverageEventsWeekly(request):
     today = int(time() * 1000) // (1000 * 60 * 60 * 24)
     
     #event_types = ["humidity_events", "temperature_events", "light_events", "motion_events", "noise_events"]
-    duck_events = my_firebase.get("/duck_events", None)
+    duck_events = my_firebase.get("/duck_events_mock", None)
+    """
     duck_events = {
         "noise_events" : {
             "duck1" : {
@@ -129,7 +130,8 @@ def getAverageEventsWeekly(request):
                 "1509873628884" : '30',
             }
         }
-  }
+    }
+    """
     out = {}
     for duck_event_type in duck_events:
         out[duck_event_type] = [0, 0, 0, 0, 0, 0, 0]
