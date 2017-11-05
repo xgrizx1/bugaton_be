@@ -3,11 +3,14 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from firebase import firebase
 from time import time
+from datetime import datetime, timedelta
 
 import json
 import subprocess
 
 my_firebase = firebase.FirebaseApplication('https://test-cdf02.firebaseio.com', None)
+
+def post1(requst):
 
 def index(request):
     #f = open("test2.txt","w")
@@ -38,10 +41,81 @@ def hooks(request):
     
     json_data = json.loads(request.POST["payload"])
     result = my_firebase.patch('https://test-cdf02.firebaseio.com/test_push2', json_data)
+    commits = json_data["commits"]
+  
+    for commit in commits:
+        added = 0
+        modified = 0
+        removed = 0
+        try:
+            added += len(commit["added"])
+        except:
+            pass
+        try:
+            modified += len(commit["modified"])
+        except:
+            pass
+        try:
+            removed += len(commit["removed"])
+        except:
+            pass
+        github_username = commit["committer"]["username"]
 
-    
-    
+        utc_time = datetime.strptime("2017-09-15T17:13:29.380Z", "%Y-%m-%dT%H:%M:%S.%fZ")
+        #milliseconds = (utc_time - datetime(1970, 1, 1)) // timedelta(milliseconds=1)
+        milliseconds = int((utc_time - datetime.utcfromtimestamp(0)).total_seconds() * 1000.0)
+        # print(milliseconds)
+
+        # year = commit["timestamp"][0:4]
+        # month = commit["timestamp"][5:7]
+        # day = commit["timestamp"][8:10]
+        # hour = commit["timestamp"][11:13]
+        # minute = commit["timestamp"][14:16]
+        # second = commit["timestamp"][17:19]
+        # print(added,modified,removed)
+        # print(year, month, day)
+        # print(hour, minute, second)
+        obj = {github_username: {
+            milliseconds: {
+                "code_quality": "0.777",
+                "files_added": added,
+                "files_changed": modified,
+                "files_removed": removed
+            }
+        }}
+
+        result = my_firebase.patch('https://test-cdf02.firebaseio.com/git_events', obj)
+
     return HttpResponse(result)
+
+def getAverageMoodsWeekly(request):
+    today = int(time() * 1000) / (1000 * 60 * 24)
+    averageMoods = [None, None, None, None, None, None, None]
+    sumMoods = [0, 0, 0, 0, 0, 0, 0]
+    cntMoods = [0, 0, 0, 0, 0, 0, 0]
+    mood_events = my_firebase.get("/mood_events_mock", None)
+    for user_id in mood_events:
+        print(user_id)
+        for timestamp in mood_events[user_id]:
+            value = int(mood_events[user_id][timestamp])
+            print(value)
+            day = int(timestamp) / (1000 * 60 * 24)
+            daysAgo = today - day
+            print("d",daysAgo)
+            if (daysAgo < 7):
+                sumMoods[daysAgo] += value
+                cntMoods[daysAgo] += 1
+
+    for i in range(7):
+        if cntMoods[i] > 0:
+            averageMoods[i] = sumMoods[i] / cntMoods
+        else:
+            averageMoods[i] = None
+
+    print(averageMoods)
+    print(averageMoods.reverse())
+    return HttpResponse(averageMoods.reverse())
+
 
 def getLists(request):
     ducks = my_firebase.get("/ducks", None)
