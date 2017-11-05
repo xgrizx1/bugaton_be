@@ -28,11 +28,11 @@ def rateDay(request):
 
 def getUsers(request):
     users = my_firebase.get("/users", None)
-    return HttpResponse(str(users))
+    return HttpResponse(json.dumps(users))
 
 def getProjects(request):
     projects = my_firebase.get("/projects", None)
-    return HttpResponse(str(projects))
+    return HttpResponse(json.dumps(projects))
 
 
 def index(request):
