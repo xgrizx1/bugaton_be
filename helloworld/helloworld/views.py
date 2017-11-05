@@ -10,7 +10,10 @@ import subprocess
 
 my_firebase = firebase.FirebaseApplication('https://test-cdf02.firebaseio.com', None)
 
+@csrf_exempt
+@require_http_methods(["POST"])
 def post1(requst):
+    return HttpResponse("ok")
 
 def index(request):
     #f = open("test2.txt","w")
