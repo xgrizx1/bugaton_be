@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 import json
 import subprocess
+import random
 
 my_firebase = firebase.FirebaseApplication('https://test-cdf02.firebaseio.com', None)
 
@@ -98,16 +99,16 @@ def hooks(request):
         # print(added,modified,removed)
         # print(year, month, day)
         # print(hour, minute, second)
-        obj = {github_username: {
+        obj = {
             milliseconds: {
-                "code_quality": "0.777",
+                "code_quality": random.random(),    #TO DO
                 "files_added": added,
                 "files_changed": modified,
                 "files_removed": removed
             }
-        }}
+        }
 
-        result = my_firebase.patch('https://test-cdf02.firebaseio.com/git_events', obj)
+        result = my_firebase.patch('https://test-cdf02.firebaseio.com/git_events/' + github_username, obj)
 
     return HttpResponse(result)
 
@@ -116,22 +117,6 @@ def getAverageEventsWeekly(request):
     
     #event_types = ["humidity_events", "temperature_events", "light_events", "motion_events", "noise_events"]
     duck_events = my_firebase.get("/duck_events_mock", None)
-    """
-    duck_events = {
-        "noise_events" : {
-            "duck1" : {
-                "1509873628894" : '80',
-                "1509873628884" : '70',
-            }
-        },
-        "temperature_events" : {
-            "duck1" : {
-                "1509873628894" : '25',
-                "1509873628884" : '30',
-            }
-        }
-    }
-    """
     out = {}
     for duck_event_type in duck_events:
         out[duck_event_type] = [0, 0, 0, 0, 0, 0, 0]
@@ -194,18 +179,18 @@ def createModelData():
     
     my_firebase = firebase.FirebaseApplication('https://test-cdf02.firebaseio.com', None)
     users = my_firebase.get("/users", None)
-    print(users)
-    print("*************")
+    # print(users)
+    # print("*************")
     mood_events = my_firebase.get("/mood_events_mock", None)
     duck_events = my_firebase.get("/duck_events_mock", None)
 
     model={}
     for user_id in users:
         model[user_id] = {}
-        print("--------")
-        print(user_id)
+        # print("--------")
+        # print(user_id)
         duck_id = users[user_id]['duck_id']
-        print("duck_id: ", duck_id)
+        # print("duck_id: ", duck_id)
         user_mood_events = None
 
         sume = []
@@ -220,7 +205,7 @@ def createModelData():
             for timestamp in user_mood_events:
                 day = int(timestamp) / (1000 * 60 * 24)
                 model[user_id][day] = {}
-                print("day ", day)
+                # print("day ", day)
 
 
                 event_types = ["noise_events", "temperature_events"]
@@ -230,74 +215,30 @@ def createModelData():
                     cnt = 0
                     try:
                         type_events = duck_events[event_type][duck_id]
-                        print("type_events")
-                        print(type_events)
+                        # print("type_events")
+                        # print(type_events)
                         for type_event_timestamp in type_events:
                             type_event_day = int(type_event_timestamp) / (1000 * 60 * 24)
-                            print('type_day', type_event_day)
+                            # print('type_day', type_event_day)
                             if (day == type_event_day):
-                                print("isti:::::::::::::::::::::::")
+                                # print("isti:::::::::::::::::::::::")
                                 suma += int(type_events[type_event_timestamp])
                                 cnt += 1
                     except:
                         pass
-                    print("**1")
+                    # print("**1")
                     if (cnt > 1):
                         user_type_avg = float(suma)/cnt
                         model[user_id][day][event_type] = user_type_avg
-                    print("**2")
+                    # print("**2")
 
-
-
-                """
-                suma = 0
-                cnt = 0
-
-                #noise events avg for user
-                try:
-                    noise_events = duck_events["noise_events"][duck_id]
-                    print("noise_events")
-                    print(noise_events)
-                    for noise_event_timestamp in noise_events:
-                        noise_event_day = int(noise_event_timestamp) / (1000 * 60 * 24)
-                        print('noise_day', noise_event_day)
-                        if (day == noise_event_day):
-                            suma += int(noise_events[noise_event_timestamp])
-                            cnt += 1
-                except:
-                    pass
-                print("**1")
-                user_noise_avg = float(suma)/cnt
-                model[user_id][day]["noise"] = user_noise_avg
-                print("**2")
-
-                suma = 0
-                cnt = 0
-                #temperature events avg for user
-                try:
-                    temperature_events = duck_events["temperature_events"][duck_id]
-                    print("noise_events")
-                    print(temperature_events)
-                    for temperature_event_timestamp in temperature_events:
-                        temperature_event_day = int(temperature_event_timestamp) / (1000 * 60 * 24)
-                        print('temperature_event_day', temperature_event_day)
-                        if (day == temperature_event_day):
-                            suma += int(temperature_events[temperature_event_timestamp])
-                            cnt += 1
-                except:
-                    pass
-                print("**1")
-                user_noise_avg = float(suma)/cnt
-                model[user_id][day]["noise"] = user_noise_avg
-                print("**2")
-                """
         except:
             pass
         #print(user_id)
         #print(user_mood_events)
-    print()
-    print()
-    print(model)
+    # print()
+    # print()
+    # print(model)
 
 
 if __name__ == "__main__":	
