@@ -102,6 +102,46 @@ def hooks(request):
 
     return HttpResponse(result)
 
+def getAverageEventsWeekly(request):
+    today = int(time() * 1000) / (1000 * 60 * 60 * 24)
+    
+    #event_types = ["humidity_events", "temperature_events", "light_events", "motion_events", "noise_events"]
+    duck_events = my_firebase.get("/duck_events", None)
+    duck_events = {
+        "noise_events" : {
+            "duck1" : {
+                "1509873628894" : '80',
+                "1509873628884" : '70',
+            }
+        },
+        "temperature_events" : {
+            "duck1" : {
+                "1509873628894" : '25',
+                "1509873628884" : '30',
+            }
+        }
+  }
+    out = {}
+    for duck_event_type in duck_events:
+        out[duck_event_type] = [0, 0, 0, 0, 0, 0, 0]
+        sumEvents = [0, 0, 0, 0, 0, 0, 0]
+        cntEvents = [0, 0 ,0 ,0 ,0, 0, 0]
+        for duck_id in duck_events[duck_event_type]:
+            for event_timestamp in duck_events[duck_event_type][duck_id]:
+                value = int(duck_events[duck_event_type][duck_id][event_timestamp])
+                day = int(event_timestamp) / (1000 * 60 * 60 * 24)
+                daysAgo = today - day
+                if (daysAgo < 7):
+                    sumEvents[daysAgo] += value
+                    cntEvents[daysAgo] += 1
+        for i in range(7):
+            if cntEvents[i] > 0:
+                out[duck_event_type][i] = sumEvents[i] / cntEvents[i]
+            else:
+                out[duck_event_type][i] = -1
+        out[duck_event_type].reverse()
+    return HttpResponse(str(out))
+
 def getAverageMoodsWeekly(request):
     today = int(time() * 1000) / (1000 * 60 * 60 * 24)
     averageMoods = [None, None, None, None, None, None, None]

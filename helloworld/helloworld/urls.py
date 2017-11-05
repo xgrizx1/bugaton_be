@@ -31,4 +31,5 @@ urlpatterns = [
     url(r'^duck/record-event', views2.recodEvent, name='recodEvent'),
     url(r'^post1/', views.post1, name='post1'),
     url(r'^rateDay/', views.rateDay, name='rateDay'),
+    url(r'^getAverageEventsWeekly/', views.getAverageEventsWeekly, name='getAverageEventsWeekly'),
 ]
