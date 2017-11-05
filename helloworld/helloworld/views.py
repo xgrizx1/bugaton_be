@@ -15,6 +15,17 @@ my_firebase = firebase.FirebaseApplication('https://test-cdf02.firebaseio.com', 
 def post1(requst):
     return HttpResponse("ok")
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def rateDay(request):
+    username = request.POST["username"]
+    mood = int(request.POST["mood"])
+    print(username, mood)
+    obj = {int(time()*1000): mood}
+    result = my_firebase.patch('https://test-cdf02.firebaseio.com/mood_events/'+username, obj)
+    print(result)
+    return HttpResponse("ok")
+
 def index(request):
     #f = open("test2.txt","w")
     output = subprocess.check_output("echo 1+2", shell=True)
@@ -92,7 +103,7 @@ def hooks(request):
     return HttpResponse(result)
 
 def getAverageMoodsWeekly(request):
-    today = int(time() * 1000) / (1000 * 60 * 24)
+    today = int(time() * 1000) / (1000 * 60 * 60 * 24)
     averageMoods = [None, None, None, None, None, None, None]
     sumMoods = [0, 0, 0, 0, 0, 0, 0]
     cntMoods = [0, 0, 0, 0, 0, 0, 0]
@@ -102,7 +113,7 @@ def getAverageMoodsWeekly(request):
         for timestamp in mood_events[user_id]:
             value = int(mood_events[user_id][timestamp])
             print(value)
-            day = int(timestamp) / (1000 * 60 * 24)
+            day = int(timestamp) / (1000 * 60 * 60 * 24)
             daysAgo = today - day
             print("d",daysAgo)
             if (daysAgo < 7):
@@ -111,13 +122,14 @@ def getAverageMoodsWeekly(request):
 
     for i in range(7):
         if cntMoods[i] > 0:
-            averageMoods[i] = sumMoods[i] / cntMoods
+            averageMoods[i] = sumMoods[i] / cntMoods[i]
         else:
-            averageMoods[i] = None
+            averageMoods[i] = 0
 
     print(averageMoods)
-    print(averageMoods.reverse())
-    return HttpResponse(averageMoods.reverse())
+    averageMoods.reverse()
+    print(averageMoods)
+    return HttpResponse(str(averageMoods))
 
 
 def getLists(request):
