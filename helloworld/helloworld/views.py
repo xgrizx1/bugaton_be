@@ -64,10 +64,12 @@ def ls(request):
 def hooks(request):
     
     json_data = json.loads(request.POST["payload"])
-    #result = my_firebase.patch('https://test-cdf02.firebaseio.com/test_push2', json_data)
+    result = my_firebase.patch('https://test-cdf02.firebaseio.com/test_push2', json_data)
+    
     commits = json_data["commits"]
   
     for commit in commits:
+        print("====================")
         added = 0
         modified = 0
         removed = 0
@@ -84,13 +86,13 @@ def hooks(request):
         except:
             pass
         github_username = commit["committer"]["username"]
-
+        print("---------------------------")
         #utc_time = datetime.strptime("2017-09-15T17:13:29.380Z", "%Y-%m-%dT%H:%M:%S.%fZ")
-        utc_time = datetime.strptime(commit["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        #utc_time = datetime.strptime(commit["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ")
         #print(utc_time)
         #print(datetime.utcfromtimestamp(0)).total_seconds() * 1000.0)
         #milliseconds = (utc_time - datetime(1970, 1, 1)) // timedelta(milliseconds=1)
-        milliseconds = int((utc_time - datetime.utcfromtimestamp(0)).total_seconds() * 1000.0)
+            #milliseconds = int((utc_time - datetime.utcfromtimestamp(0)).total_seconds() * 1000.0)
         #print milliseconds
         # print(milliseconds)
 
@@ -103,6 +105,7 @@ def hooks(request):
         # print(added,modified,removed)
         # print(year, month, day)
         # print(hour, minute, second)
+
         milliseconds = int(time() * 1000)
         obj = {
             milliseconds: {
@@ -112,9 +115,9 @@ def hooks(request):
                 "files_removed": removed
             }
         }
-
+        print("Before")
         result = my_firebase.patch('https://test-cdf02.firebaseio.com/git_events/' + github_username, obj)
-
+        print("After")
     return HttpResponse(result)
 
 def getAverageEventsWeekly(request):
