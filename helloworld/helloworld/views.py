@@ -103,7 +103,7 @@ def hooks(request):
     return HttpResponse(result)
 
 def getAverageEventsWeekly(request):
-    today = int(time() * 1000) / (1000 * 60 * 60 * 24)
+    today = int(time() * 1000) // (1000 * 60 * 60 * 24)
     
     #event_types = ["humidity_events", "temperature_events", "light_events", "motion_events", "noise_events"]
     duck_events = my_firebase.get("/duck_events", None)
@@ -129,21 +129,21 @@ def getAverageEventsWeekly(request):
         for duck_id in duck_events[duck_event_type]:
             for event_timestamp in duck_events[duck_event_type][duck_id]:
                 value = int(duck_events[duck_event_type][duck_id][event_timestamp])
-                day = int(event_timestamp) / (1000 * 60 * 60 * 24)
+                day = int(event_timestamp) // (1000 * 60 * 60 * 24)
                 daysAgo = today - day
                 if (daysAgo < 7):
                     sumEvents[daysAgo] += value
                     cntEvents[daysAgo] += 1
         for i in range(7):
             if cntEvents[i] > 0:
-                out[duck_event_type][i] = sumEvents[i] / cntEvents[i]
+                out[duck_event_type][i] = sumEvents[i] // cntEvents[i]
             else:
                 out[duck_event_type][i] = -1
         out[duck_event_type].reverse()
     return HttpResponse(str(out))
 
 def getAverageMoodsWeekly(request):
-    today = int(time() * 1000) / (1000 * 60 * 60 * 24)
+    today = int(time() * 1000) // (1000 * 60 * 60 * 24)
     averageMoods = [None, None, None, None, None, None, None]
     sumMoods = [0, 0, 0, 0, 0, 0, 0]
     cntMoods = [0, 0, 0, 0, 0, 0, 0]
@@ -153,7 +153,7 @@ def getAverageMoodsWeekly(request):
         for timestamp in mood_events[user_id]:
             value = int(mood_events[user_id][timestamp])
             print(value)
-            day = int(timestamp) / (1000 * 60 * 60 * 24)
+            day = int(timestamp) // (1000 * 60 * 60 * 24)
             daysAgo = today - day
             print("d",daysAgo)
             if (daysAgo < 7):
@@ -162,7 +162,7 @@ def getAverageMoodsWeekly(request):
 
     for i in range(7):
         if cntMoods[i] > 0:
-            averageMoods[i] = sumMoods[i] / cntMoods[i]
+            averageMoods[i] = sumMoods[i] // cntMoods[i]
         else:
             averageMoods[i] = 0
 
